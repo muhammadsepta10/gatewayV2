@@ -1,0 +1,44 @@
+{
+  "name": "wagw",
+  "version": "1.0.0",
+  "description": "wa gw with baliley library",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "ts-node src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc -p ."
+  },
+  "keywords": [
+    "balileywagw"
+  ],
+  "author": "syaiful",
+  "license": "ISC",
+  "dependencies": {
+    "@adiwajshing/baileys": "^3.5.1",
+    "@types/app-root-path": "^1.2.4",
+    "@types/node": "^15.12.2",
+    "app-root-path": "^3.0.0",
+    "axios": "^0.21.1",
+    "bull": "^3.22.8",
+    "bull-board": "^2.1.2",
+    "bullmq": "^1.34.0",
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "express-winston": "^4.1.0",
+    "googleapis": "^78.0.0",
+    "moment": "^2.29.1",
+    "mysql2": "^2.2.5",
+    "swagger-ui-express": "^4.1.6",
+    "ts-node": "^10.0.0",
+    "typescript": "^4.3.2",
+    "winston": "^3.3.3",
+    "winston-daily-rotate-file": "^4.5.5"
+  },
+  "devDependencies": {
+    "@types/bull": "^3.15.1",
+    "@types/cors": "^2.8.10",
+    "@types/swagger-ui-express": "^4.1.2"
+  }
+}
