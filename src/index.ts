@@ -53,7 +53,7 @@ const connectToWhatsApp = async ()=> {
         })
 
         // bull queue
-        validasiQueue.process(data=>{
+        validasiQueue.process(8,data=>{
             return callWebHook(data.data)
         })
         validasiQueue.on("completed",data=>{
@@ -87,7 +87,7 @@ const connectToWhatsApp = async ()=> {
         })
         conn.on("close",()=>{
             fs.unlinkSync(credentialPath)
-            throw new Error("Connection Closed")
+            winstonOpt.combineOpt.error({message:"Error on gateway Close Connection"})
         })
         await conn.connect()
 
@@ -96,7 +96,6 @@ const connectToWhatsApp = async ()=> {
             const unread = await conn.loadAllUnreadMessages()
             for (let index = 0; index < unread.length; index++) {
                 const message = unread[index]
-                console.log(message)
                 const remoteJid = message?.key?.remoteJid||""
                 const messageId = message.key.id
                 let messageText = message.message?.conversation||""
@@ -112,7 +111,7 @@ const connectToWhatsApp = async ()=> {
                     const buffer = await conn.downloadMediaMessage(message) // to decrypt & use as a buffer
                     writeFileSyncRecursive(`${appRoot}/media${pathFile}`,buffer)
                 }
-                if (messageText!=""&&messageText) {
+                if ((messageText!=""&&messageText)||filename) {
                     validasiQueue.add({
                         message:messageText,
                         sender:remoteJid,
@@ -143,7 +142,7 @@ const connectToWhatsApp = async ()=> {
                     const buffer = await conn.downloadMediaMessage(message) // to decrypt & use as a buffer
                     writeFileSyncRecursive(`${appRoot}/media${pathFile}`,buffer)
                 }
-                if (messageText!=""&&messageText) {
+                if ((messageText!=""&&messageText)||filename) {
                     validasiQueue.add({
                         message:messageText,
                         sender:remoteJid,
@@ -157,7 +156,6 @@ const connectToWhatsApp = async ()=> {
                 const jid:any = chatUpdate.jid
                 const lastKnownPresence = presences?presences[jid]?.lastKnownPresence:""
                 const name = presences?presences[jid]?.name:""
-                console.log(`${name} =>  ${lastKnownPresence=="composing"?"Typing":"Close Typing"}`)
             }
         })
     } catch (error) {
@@ -170,14 +168,18 @@ const callWebHook = (param:{message:string,sender:string,rcvdTime:string,filenam
     return new Promise<{sender:string,reply:string}>(async(resolve,reject)=>{
         const senderReal = param.sender.replace(/[^0-9]/g, '')
         let reply = ""
-        await saveContact(senderReal,senderReal)
-        await axios.post("http://localhost:5001/api/v1/validasi",{
+        await saveContact(senderReal,senderReal).catch(error=>{
+            winstonOpt.combineOpt.error({message:"Error on save Contact",error})
+        })
+        const urlValidasi = process.env.URL_VALIDASI||""
+        await axios.post(urlValidasi,{
             pesan:Buffer.from(param.message).toString("base64"),
             nomor_pengirim:senderReal,
-            timestamp:param.rcvdTime,
-            media:"300"
+            timestamp:moment().format("YYYY-MM-DD HH:mm:ss"),
+            media:"300",
+            photo:param.filename?Buffer.from(param.filename).toString("base64"):undefined
         }).then(res=>{
-            reply = res.data.message
+            reply = res.data?.data?.reply ? res.data.data.reply : res.data.message
             return resolve({sender:param.sender,reply})
         }).catch(error=>{
             winstonOpt.combineOpt.error({message:"Error to validasi",error})
